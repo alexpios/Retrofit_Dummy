@@ -2,6 +2,8 @@ package com.example.retrofitdummy
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.retrofitdummy.adapter.ProductAdapter
 import com.example.retrofitdummy.databinding.ActivityMainBinding
 import com.example.retrofitdummy.retrof.AuthRequest
 import com.example.retrofitdummy.retrof.MainApi
@@ -16,12 +18,15 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: ProductAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
+        adapter = ProductAdapter()
         setContentView(view)
-
+        binding.recView.layoutManager = LinearLayoutManager(this)
+        binding.recView.adapter = adapter
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
 
@@ -31,6 +36,17 @@ class MainActivity : AppCompatActivity() {
             .baseUrl("https://dummyjson.com/").client(client)
             .addConverterFactory(GsonConverterFactory.create()).build()
         val mainApi = retrofit.create(MainApi::class.java)
+
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val list = mainApi.getAllProducts()
+            runOnUiThread {
+                adapter.submitList(list.products)
+            }
+        }
+
+
+
 
 
         binding.button.setOnClickListener{
