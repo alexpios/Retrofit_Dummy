@@ -1,21 +1,18 @@
 package com.example.retrofitdummy
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.retrofitdummy.databinding.ActivityMainBinding
-import com.example.retrofitdummy.retrof.ProductApi
+import com.example.retrofitdummy.retrof.AuthRequest
+import com.example.retrofitdummy.retrof.MainApi
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -33,16 +30,13 @@ class MainActivity : AppCompatActivity() {
         val retrofit = Retrofit.Builder()
             .baseUrl("https://dummyjson.com/").client(client)
             .addConverterFactory(GsonConverterFactory.create()).build()
+        val mainApi = retrofit.create(MainApi::class.java)
 
 
-        binding.button.setOnClickListener(){
+        binding.button.setOnClickListener{
             CoroutineScope(Dispatchers.IO).launch {
 
-                val productApi = retrofit.create(ProductApi::class.java)
-                val product = productApi.getProductById(3)
-
-
-
+                val product = mainApi.getProductById(3)
                 runOnUiThread {
                     binding.textView.text = product.title
 
@@ -51,11 +45,32 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.signButton.setOnClickListener {
+        CoroutineScope(Dispatchers.IO).launch {
+
+            val user = mainApi.auth(AuthRequest(binding.userName.text.toString(),
+                binding.editTextTextPassword.text.toString()))
+
+
+            runOnUiThread{
+                binding.apply {
+
+                    Picasso.get()
+                        .load(user.image)
+//                        .resize(50, 50)
+//                        .centerCrop()
+                        .into(imageView)
+                     firstName.text = user.firstName
+                    lastName.text = user.lastName
+
+                }
+
+            }
+        }
 
 
 
-
-
+        }
 
 
 
